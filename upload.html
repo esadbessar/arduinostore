@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload & Score</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="upload-box rotating-border">
+      <h2>📤 Dosya Yükle</h2>
+      <input type="file" id="fileInput" accept="image/*" />
+      <button id="uploadBtn">Yükle</button>
+      <p id="status">⬤ Bekleniyor...</p>
+    </div>
+
+    <div class="score-store">
+      <div class="score-box">🎯 Puanınız: <span id="score">Yükleniyor...</span></div>
+      <button class="store-btn" onclick="location.href='store.html'">🛒 Mağazaya Git</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://cftheestnqbhiuofcwqc.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmdGhlZXN0bnFiaGl1b2Zjd3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwNDg5NjYsImV4cCI6MjA2NjYyNDk2Nn0.KlePxnxSD1IgNL2QU57xCb4rAIhDlemluu97sHYX2xg'
+    );
+
+    const fileInput = document.getElementById('fileInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const statusDiv = document.getElementById('status');
+    const scoreSpan = document.getElementById('score');
+
+    async function getScore(uid) {
+      const { data, error } = await supabase
+        .from('user_points')
+        .select('score')
+        .eq('user_id', uid)
+        .single();
+      if (error || !data) {
+        scoreSpan.textContent = '0';
+      } else {
+        scoreSpan.textContent = data.score;
+      }
+    }
+
+    uploadBtn.addEventListener('click', async () => {
+      const file = fileInput.files[0];
+      if (!file) return alert("📁 Lütfen bir dosya seçin.");
+
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) return alert("⚠️ Giriş bilgisi alınamadı.");
+
+      statusDiv.textContent = "⏳ Yükleniyor...";
+
+      const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+      const path = `${user.id}/${Date.now()}_${safeName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('user-photos')
+        .upload(path, file);
+
+      if (uploadError) {
+        statusDiv.textContent = "❌ Yükleme hatası: " + uploadError.message;
+        return;
+      }
+
+      const { error: insertError } = await supabase
+        .from('files')
+        .insert([{ user_id: user.id, filename: path }]);
+
+      if (insertError) {
+        statusDiv.textContent = "⚠️ Veritabanı hatası: " + insertError.message;
+        return;
+      }
+
+      const { error: pointError } = await supabase
+        .rpc('add_points', { uid: user.id });
+
+      if (pointError) {
+        statusDiv.textContent = "⚠️ Puan eklenemedi: " + pointError.message;
+        return;
+      }
+
+      await getScore(user.id);
+      statusDiv.textContent = "✅ Başarıyla yüklendi! Puan güncellendi.";
+
+      fileInput.value = "";
+    });
+
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await getScore(user.id);
+      }
+    })();
+  </script>
+</body>
+</html>

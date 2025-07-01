@@ -1,0 +1,157 @@
+/* Genel yapı */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Orbitron', sans-serif;
+}
+
+body {
+  background: url('./ea6d6d6b389d44e5978e84eac9cdd30f.jpeg') no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 20px;
+  color: #00f7ff;
+  overflow: hidden;
+}
+
+/* Konteyner */
+.container {
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+  max-width: 420px;
+  z-index: 1;
+}
+
+/* Upload Box */
+.upload-box, .score-store {
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3), inset 0 0 10px rgba(0, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 30px;
+  position: relative;
+  overflow: hidden;
+  transition: 0.3s ease;
+}
+
+/* Hover büyüme */
+.upload-box:hover, .score-store:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 30px #00f7ff;
+}
+
+/* Başlık */
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #00f7ff;
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Dosya seçme */
+input[type="file"] {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border: 2px dashed #00f7ff;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
+  color: #fff;
+  transition: border-color 0.3s;
+}
+
+input[type="file"]:hover {
+  border-color: #00ffea;
+}
+
+/* Buton */
+button {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #000;
+  background: linear-gradient(90deg, #00f7ff, #00ffe1);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 0 10px #00f7ff;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px #00f7ff;
+}
+
+/* Durum metni */
+#status {
+  margin-top: 15px;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #00ffb3;
+}
+
+/* Skor kutusu */
+.score-box {
+  background: rgba(0, 0, 0, 0.6);
+  padding: 15px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #ffffff;
+  box-shadow: 0 0 10px #00ffe1;
+  margin-bottom: 20px;
+}
+
+.store-btn {
+  background: linear-gradient(90deg, #00ffcc, #00f0ff);
+  color: #000;
+  font-weight: 600;
+}
+
+.store-btn:hover {
+  background: linear-gradient(90deg, #00ccff, #00ffcc);
+  box-shadow: 0 0 15px #00fff2;
+}
+
+/* Neon Kenar Işıması */
+.upload-box::before, .score-store::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #00fff2, #0044ff, #00fff2);
+  border-radius: 22px;
+  z-index: -1;
+  filter: blur(10px);
+  opacity: 0.3;
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Animasyon */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.3;
+    filter: blur(10px);
+  }
+  50% {
+    opacity: 0.6;
+    filter: blur(20px);
+  }
+}

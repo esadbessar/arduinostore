@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Arduino Shop</title>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: url('./back.jpg') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Inter', sans-serif;
+      color: red;
+      padding-top: 50px;
+      backdrop-filter: blur(5px);
+    }
+
+    h1 {
+      text-shadow: 0 0 15px red;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    #score {
+      font-size: 1.6rem;
+      color: #00ffcc;
+      text-shadow: 0 0 8px #00fff2;
+      display: block;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .item-card {
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid #00fff2;
+      border-radius: 18px;
+      box-shadow: 0 0 15px #00fff2;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      height: 100%;
+    }
+
+    .item-card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px #00f7ff;
+    }
+
+    .item-card img {
+      height: 230px;
+      object-fit: cover;
+      border-radius: 18px 18px 0 0;
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    .btn-disabled {
+      background-color: #444 !important;
+      cursor: not-allowed !important;
+      border: none !important;
+    }
+
+    .success-msg {
+      position: fixed;
+      top: 20px;
+      background: #00ffe1;
+      color: #000;
+      padding: 15px 30px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px #00fff2;
+      animation: fadeOut 4s forwards;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+    }
+
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { opacity: 0; top: -60px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>🛍️ Arduino Shop</h1>
+  <span id="score">Puanınız: ...</span>
+
+  <div class="container">
+    <div id="store" class="row g-4 justify-content-center"></div>
+  </div>
+
+  <div id="message-container"></div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://cftheestnqbhiuofcwqc.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmdGhlZXN0bnFiaGl1b2Zjd3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwNDg5NjYsImV4cCI6MjA2NjYyNDk2Nn0.KlePxnxSD1IgNL2QU57xCb4rAIhDlemluu97sHYX2xg'
+    );
+
+    let currentScore = 0;
+    let userId = null;
+    const purchasedItems = [];
+
+    // Gerçek UUID'leri store_items tablosundan aldığın gibi yerleştir
+    const items = [
+      {
+        id: '8404a562-7292-4bb7-9159-1340bda60d51', // örnek: '3df24e90-d234-4f13-8e3b-13eeb52b101a'
+        name: 'Arduino Uyelik Kartı',
+        description: 'Biznısçı pezevenklere uygun.Kişiye özel tasarlanır.',
+        cost: 1000,
+        image: '1.jpg'
+      },
+      {
+        id: '2ccab7c8-0ec5-43dc-bb44-983e22208c10',
+        name: 'Özel Buton',
+        description: 'Esad Bessar üstadımızın sitesinde giriş panelinde özel buton fırsatı.',
+        cost: 1500,
+        image: '2.jpg'
+      },
+      {
+        id: '8404a562-7292-4bb7-9159-1340bda60d51',
+        name: 'Yarrak Silah',
+        description: 'Yarrak silah ile poz şansı',
+        cost: 2000,
+        image: '3.jpg'
+      },
+      {
+        id: 'b6a24932-c6dd-401a-991d-6dfd240b1b39',
+        name: 'Mezuniyet Photoshop',
+        description: 'Mustafam kadar saf ve yakışıklı olamazsınız ama yapılır.',
+        cost: 2500,
+        image: '4.jpg'
+      },
+      {
+        id: 'cb34f3ec-4fa3-41aa-a642-03f0f015dc50',
+        name: 'GAL Öğrencisi',
+        description: 'Allahına kadar GAL olm photoshopu',
+        cost: 3000,
+        image: '5.jpg'
+      },
+      {
+        id: '2a70e843-28b0-4538-bced-6dc5b1705831',
+        name: 'Iphone 9290321 Pro Max',
+        description: 'Bu dehşet-ül vahşet telefon ile photoshop selfiesi.',
+        cost: 3500,
+        image: '6.jpg'
+      },
+      {
+        id: '7b9f57ed-4cac-4531-aad7-a2f485277a31',
+        name: 'Mistik Uyku',
+        description: 'Rüyanda rus karılası sikip rüyalanma sekansı.',
+        cost: 4000,
+        image: '7.jpg'
+      },
+      {
+        id: '8f1c75c3-5d73-49e9-9d95-e4085fcd33b4',
+        name: 'Kol Alçısı',
+        description: '31 çekmekten kopan kollara özel üretilmiş kol alçısı.',
+        cost: 4500,
+        image: '8.jpg'
+      },
+      {
+        id: '7d97c18a-9c4f-4918-84b1-45b9a239bed6',
+        name: 'Mistik Gitar',
+        description: 'Gayış gibi telleriyle mistik gitar.',
+        cost: 5000,
+        image: '9.jpg'
+      }
+    ];
+
+    async function getUserId() {
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data.user) {
+        alert("Kullanıcı bilgisi alınamadı.");
+        return null;
+      }
+      return data.user.id;
+    }
+
+    async function loadStore() {
+      userId = await getUserId();
+      if (!userId) return;
+
+      const { data: pointData } = await supabase
+        .from('user_points')
+        .select('score')
+        .eq('user_id', userId)
+        .single();
+      currentScore = pointData?.score || 0;
+      document.getElementById("score").textContent = `Puanınız: ${currentScore}`;
+
+      const { data: purchases } = await supabase
+        .from('purchases')
+        .select('item_id')
+        .eq('user_id', userId);
+
+      const ownedIds = purchases?.map(p => p.item_id) || [];
+
+      renderItems(ownedIds);
+    }
+
+    function renderItems(owned) {
+      const store = document.getElementById('store');
+      store.innerHTML = '';
+
+      for (const item of items) {
+        const bought = owned.includes(item.id);
+        const insufficient = item.cost > currentScore && !bought;
+
+        const card = document.createElement('div');
+        card.className = 'col-md-6 col-lg-4';
+
+        card.innerHTML = `
+          <div class="item-card card text-light h-100">
+            <img src="${item.image}" class="card-img-top" alt="${item.name}">
+            <div class="card-body d-flex flex-column justify-content-between">
+              <h4 class="card-title">${item.name}</h4>
+              <p class="card-text">${item.description}</p>
+              <p><strong>${item.cost} puan</strong></p>
+              <button class="btn ${bought ? 'btn-success' : 'btn-info'} ${bought || insufficient ? 'btn-disabled' : ''} w-100 mt-auto" ${bought || insufficient ? 'disabled' : ''} onclick="buyItem('${item.id}', ${item.cost})">
+                ${bought ? '✅ Satın Alındı' : 'Satın Al'}
+              </button>
+            </div>
+          </div>
+        `;
+
+        store.appendChild(card);
+      }
+    }
+
+    window.buyItem = async function(itemId, cost) {
+      if (!userId) return;
+
+      if (currentScore < cost) {
+        alert("Yetersiz puan.");
+        return;
+      }
+
+      await supabase.from('purchases').insert({ user_id: userId, item_id: itemId });
+      await supabase.from('user_points').update({ score: currentScore - cost }).eq('user_id', userId);
+
+      showMessage("✅ Satın alma başarılı!");
+      loadStore();
+    }
+
+    function showMessage(text) {
+      const div = document.createElement("div");
+      div.className = "success-msg";
+      div.textContent = text;
+      document.body.appendChild(div);
+      setTimeout(() => div.remove(), 4000);
+    }
+
+    loadStore();
+  </script>
+</body>
+</html>
